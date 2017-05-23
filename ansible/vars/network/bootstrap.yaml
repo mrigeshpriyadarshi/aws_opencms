@@ -1,0 +1,6 @@
+---
+stash: http://mrigeshpriyadarshi@github.com
+platforms:
+    aws-platform-bootstrap:
+        alias: bootstrap
+        version: HEAD

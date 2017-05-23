@@ -1,0 +1,14 @@
+---
+
+- name: Provision Stack 
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "./var/network/bootstrap.yaml"
+    - "./var/network/cloudformation.yaml"
+  pre_tasks:
+    - include_vars: "./var/{{ item }}.yaml"
+      with_items: include
+  roles:
+    - "{{ stack }}"

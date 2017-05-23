@@ -1,0 +1,77 @@
+---
+
+- name: init
+  set_fact:
+    bootstrap_version: "{{ platforms['aws-platform-bootstrap']['version'] }}"
+
+- name: Run Bootstrap Net CloudFormation Stack
+  cloudformation:
+    stack_name: "BootstrapNet"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: present
+    template: "../cfn/bootstrap-network.json"
+    template_parameters:
+      StackName : "{{ bootstrap.StackName }}"
+      WebSubnetCIDR : "{{ bootstrap.WebSubnetCIDR }}"
+      AppSubnetCIDR : "{{ bootstrap.AppSubnetCIDR }}"
+      DataSubnetCIDR : "{{ bootstrap.DataSubnetCIDR }}"
+      VPCCIDR : "{{ bootstrap.VpcCidrBlock }}"
+      StackAvailabilityZone : "{{ bootstrap.StackAvailabilityZone }}"
+  register: BootstrapNetStack
+  when: stack_action == "create" or stack_action == "create-network"
+
+- name: Run DB Instance Creation CloudFormation Stack
+  cloudformation:
+    stack_name: "DatabaseInstance"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: present
+    template: "../cfn/bootstrap-instance.json"
+    template_parameters:
+      StackName : "{{ bootstrap.StackName }}"
+      SecurityGroup : "{{ BootstrapNetStack.stack_outputs.DataNetSecurityGroup }}"
+      Subnet : "{{ BootstrapNetStack.stack_outputs.DataSubnet }}"
+      InstanceType : "{{ bootstrap.InstanceType }}"
+      AMI : "{{ bootstrap.NATAMI }}"
+      KeyPairName : "{{ bootstrap.KeyPairName }}"
+  register: DatabaseInstanceStack
+  when: stack_action == "create" or stack_action == "create-db-instance"
+
+- name: Run App Instance Creation CloudFormation Stack
+  cloudformation:
+    stack_name: "DatabaseInstance"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: present
+    template: "../cfn/bootstrap-instance.json"
+    template_parameters:
+      StackName : "{{ bootstrap.StackName }}"
+      SecurityGroup : "{{ BootstrapNetStack.stack_outputs.AppNetSecurityGroup }}"
+      Subnet : "{{ BootstrapNetStack.stack_outputs.AppSubnet }}"
+      InstanceType : "{{ bootstrap.InstanceType }}"
+      AMI : "{{ bootstrap.NATAMI }}"
+      KeyPairName : "{{ bootstrap.KeyPairName }}"
+  register: AppInstanceStack
+  when: stack_action == "create" or stack_action == "create-app-instance"
+
+- name: Run Web Instance Creation CloudFormation Stack
+  cloudformation:
+    stack_name: "DatabaseInstance"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: present
+    template: "../cfn/bootstrap-instance.json"
+    template_parameters:
+      StackName : "{{ bootstrap.StackName }}"
+      SecurityGroup : "{{ BootstrapNetStack.stack_outputs.WebNetSecurityGroup }}"
+      Subnet : "{{ BootstrapNetStack.stack_outputs.WebSubnet }}"
+      InstanceType : "{{ bootstrap.InstanceType }}"
+      AMI : "{{ bootstrap.NATAMI }}"
+      KeyPairName : "{{ bootstrap.KeyPairName }}"
+  register: WebInstanceStack
+  when: stack_action == "create" or stack_action == "create-web-instance"
