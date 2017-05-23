@@ -89,3 +89,4 @@
       WebInstance : "{{ WebInstanceStack.stack_outputs.WebInstance }}"
   register: WebInstanceEIPStack
   when: stack_action == "create" or stack_action == "create-web-instance"
+
