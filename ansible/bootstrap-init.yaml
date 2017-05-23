@@ -1,0 +1,15 @@
+---
+
+- name: Bootstrap Environment
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "./var/{{ item }}/bootstrap.yaml"
+
+  tasks:
+    - name: Install Extras Module
+      action: git repo=https://github.com/ansible/ansible-modules-extras.git dest="library/ansible-modules-extras"
+
+    - name: Create Directories
+      command: mkdir -p data

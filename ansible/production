@@ -1,0 +1,11 @@
+# production inventory
+
+[web]
+# host
+
+[app]
+# host
+
+[db]
+# host
+

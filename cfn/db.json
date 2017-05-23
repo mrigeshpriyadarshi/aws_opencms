@@ -1,0 +1,325 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+	
+	"Description" : "Create subnets, IGW, Route Tables and Security Groups",
+	
+	"Parameters" : {
+
+		"StackName" : {
+			"Description" : "The name of the Stack",
+			"Type": "String",
+			"MinLength": "1",
+			"MaxLength": "18",
+			"Default" : "VPC",
+			"ConstraintDescription": "A short name to identify this swimlane (USE LOWERCASE ONLY as this name is also used for S3 bucket name.)"
+		},
+		
+		"VPCCIDR" : {
+			"Description" : " The VPC CIDR Block",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"Default": "10.11.0.0/24",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x."
+		},		
+		
+		"WebSubnetCIDR" : {
+			"Description" : "The first subnet's CIDR Block",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"Default": "10.11.0.0/26",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},	
+		
+		"AppSubnetCIDR" : {
+			"Description" : "The second subnet'ss CIDR Block",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"Default": "10.11.0.64/26",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+
+		"DataSubnetCIDR" : {
+			"Description" : "The second subnet'ss CIDR Block",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"Default": "10.11.0.128/25",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+
+		"StackAvailabilityZone" : {
+			"Description" : "The second subnet's AZ",
+			"Type": "String",
+			"MinLength": "10",
+			"MaxLength": "18",
+			"Default" : "us-east-1a",
+			"ConstraintDescription": "Must be a valid AZ in the Region where Stack is to be created."
+		}
+
+	},
+	
+	"Resources" : {
+		"VPCID" : {
+			"Type" : "AWS::EC2::VPC",
+			"Properties" : {
+			"CidrBlock" : { "Ref" : "VPCCIDR" },
+			"EnableDnsHostnames" : "true",
+			"EnableDnsSupport" : "true",
+			"Tags" : [{
+					"Key": "Name",
+					"Value": {"Fn::Join": ["-",["bootstrap", { "Ref" : "AWS::Region" }]]}
+				}]
+			}
+		},
+
+		"WebSubnet" : {
+			"Type" : "AWS::EC2::Subnet",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"CidrBlock" : { "Ref" : "WebSubnetCIDR" },
+				"AvailabilityZone" : { "Ref" : "StackAvailabilityZone" },
+				"MapPublicIpOnLaunch" : "true",
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "",	[ { "Ref" : "StackName"}, "-", { "Ref" : "StackAvailabilityZone"}, "-", "WebSubnet"]]}} ,
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 
+				]
+			}					
+		},
+
+		"AppSubnet" : {
+			"Type" : "AWS::EC2::Subnet",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"CidrBlock" : { "Ref" : "AppSubnetCIDR" },
+				"AvailabilityZone" : { "Ref" : "StackAvailabilityZone" },
+				"MapPublicIpOnLaunch" : "true",
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "",	[ { "Ref" : "StackName"}, "-", { "Ref" : "StackAvailabilityZone"}, "-", "AppSubnet"]]}} ,
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 
+				]
+			}					
+		},	
+
+		"DataSubnet" : {
+			"Type" : "AWS::EC2::Subnet",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"CidrBlock" : { "Ref" : "DataSubnetCIDR" },
+				"AvailabilityZone" : { "Ref" : "StackAvailabilityZone" },
+				"MapPublicIpOnLaunch" : "true",
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "",	[ { "Ref" : "StackName"}, "-", { "Ref" : "StackAvailabilityZone"}, "-", "DataSubnet"]]}} ,
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 
+				]
+			}					
+		},
+
+		"InternetGateway" : {
+			"Type" : "AWS::EC2::InternetGateway",
+			"Properties" : {
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "",	[ { "Ref" : "StackName"}, "-", "IGW"]]}},
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 
+				]
+			}
+		},
+
+		"AttachInternetGateway" : {
+			"Type" : "AWS::EC2::VPCGatewayAttachment",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"InternetGatewayId" : { "Ref" : "InternetGateway" }
+			},
+			"DependsOn" : "InternetGateway"
+		},
+
+		"RouteTable" : {
+			"Type" : "AWS::EC2::RouteTable",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : "Main VPC Routing" },
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 				
+				]
+			}
+		},
+
+		"RouteInternet" : {
+			"Type" : "AWS::EC2::Route",
+			"Properties" : {
+				"RouteTableId" : { "Ref" : "RouteTable" },
+				"DestinationCidrBlock" : "0.0.0.0/0",
+				"GatewayId" : { "Ref" : "InternetGateway" }
+			},
+			"DependsOn" : "AttachInternetGateway"
+		},
+
+		"WebSubnetRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+					"SubnetId" : { "Ref" : "WebSubnet" },
+					"RouteTableId" : { "Ref" : "RouteTable" }
+				}
+		},	
+
+		"AppSubnetRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+					"SubnetId" : { "Ref" : "AppSubnet" },
+					"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"DataSubnetRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+					"SubnetId" : { "Ref" : "DataSubnet" },
+					"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"WebNetSecurityGroup" : {
+			"Type" : "AWS::EC2::SecurityGroup",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"GroupDescription" : "Security Group for Web Net",
+				"SecurityGroupIngress" : [
+					{"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"},
+					{"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
+					{"IpProtocol" : "tcp", "FromPort" : "443", "ToPort" : "443", "CidrIp" : "0.0.0.0/0"}
+				],
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "StackName"}, "-", "Web"]]} },
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 				
+				]				
+			}
+		},
+		
+		"WebNetSecurityGroupSelfRef" : {
+			"Type" : "AWS::EC2::SecurityGroupIngress",
+			"Properties" : {
+				"GroupId" : { "Ref" : "WebNetSecurityGroup" },
+				"IpProtocol" : "-1",
+				"FromPort" : "-1",
+				"ToPort" : "-1",
+				"SourceSecurityGroupId" : { "Ref" : "WebNetSecurityGroup" }
+			},
+			"DependsOn" : "WebNetSecurityGroup"
+		},		
+		
+		"AppNetSecurityGroup" : {
+			"Type" : "AWS::EC2::SecurityGroup",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"GroupDescription" : "Security Group for App Net",
+				"SecurityGroupIngress" : [
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.250.0/24"},
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.33.104/32"},
+					{"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"},
+					{"IpProtocol" : "tcp", "FromPort" : "800", "ToPort" : "805", "SourceSecurityGroupId" : { "Ref" : "WebNetSecurityGroup" }}
+				],
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "StackName"}, "-", "AppNet"]]} },
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 				
+				]				
+			}
+		},
+		
+		"AppNetSecurityGroupSelfRef" : {
+			"Type" : "AWS::EC2::SecurityGroupIngress",
+			"Properties" : {
+				"GroupId" : { "Ref" : "AppNetSecurityGroup" },
+				"IpProtocol" : "-1",
+				"FromPort" : "-1",
+				"ToPort" : "-1",
+				"SourceSecurityGroupId" : { "Ref" : "AppNetSecurityGroup" }
+			},
+			"DependsOn" : "AppNetSecurityGroup"
+		},			
+
+		"DataNetSecurityGroup" : {
+			"Type" : "AWS::EC2::SecurityGroup",
+			"Properties" : {
+				"VpcId" : { "Ref" : "VPCID" },
+				"GroupDescription" : "Security Group for Data Net",
+				"SecurityGroupIngress" : [	
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.250.0/24"},
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.33.104/32"},
+					{"IpProtocol" : "tcp", "FromPort" : "5432", "ToPort" : "5432", "SourceSecurityGroupId" : { "Ref" : "AppNetSecurityGroup" }},
+					{"IpProtocol" : "tcp", "FromPort" : "6432", "ToPort" : "6432", "SourceSecurityGroupId" : { "Ref" : "AppNetSecurityGroup" }}
+				],
+				"Tags" : [ 
+					{"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "StackName"}, "-", "DataNet"]]} },
+					{"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } 				
+				]				
+			}
+		},
+
+		"DataNetSecurityGroupSelfRef" : {
+			"Type" : "AWS::EC2::SecurityGroupIngress",
+			"Properties" : {
+				"GroupId" : { "Ref" : "DataNetSecurityGroup" },
+				"IpProtocol" : "-1",
+				"FromPort" : "-1",
+				"ToPort" : "-1",
+				"SourceSecurityGroupId" : { "Ref" : "DataNetSecurityGroup" }
+			},
+			"DependsOn" : "DataNetSecurityGroup"
+		},
+
+		"EIP"  : {
+			"Type" : "AWS::EC2::EIP",
+			"Properties" : {
+				"InstanceId" : { "Ref" : "WebInstance" },
+				"Domain" : "vpc"
+			},
+			"DependsOn" : "VPCID"
+		}
+	},
+
+	"Outputs" : {
+		"AppURL" : {
+			"Description" : "URL of App",
+			"Value" : { "Fn::Join" : [ "", [ "http://", { "Ref" : "EIP" } ] ] }
+		},
+		"WebSubnet" : {
+			"Description": "WebSubnet",
+			"Value": { "Ref" : "WebSubnet" }
+		},
+		"AppSubnet" : {
+			"Description": "AppSubnet",
+			"Value": { "Ref" : "AppSubnet" }
+		},
+		"DataSubnet" : {
+			"Description": "DataSubnet",
+			"Value": { "Ref" : "DataSubnet" }
+		},
+		"RouteTable" : {
+			"Description": "RouteTable",
+			"Value" : { "Ref" : "RouteTable" }
+		},
+		"WebNetSecurityGroup" : {
+			"Description": "WebNetSecurityGroup",
+			"Value": { "Ref" : "WebNetSecurityGroup" }
+		},
+		"AppNetSecurityGroup" : {
+			"Description": "AppNetSecurityGroup",
+			"Value": { "Ref" : "AppNetSecurityGroup" }
+		},
+		"DataNetSecurityGroup" : {
+			"Description": "DataNetSecurityGroup",
+			"Value": { "Ref" : "DataNetSecurityGroup" }
+		},
+		"WebInstanceEIP" : {
+			"Description" : "WebInstance EIP",
+			"Value" : { "Ref" : "EIP" }
+		}
+	}
+}

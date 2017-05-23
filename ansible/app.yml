@@ -1,0 +1,6 @@
+---
+# app role
+
+- hosts: app
+  roles:
+    - { role: app }
