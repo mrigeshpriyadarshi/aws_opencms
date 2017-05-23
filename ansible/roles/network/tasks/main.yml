@@ -42,7 +42,7 @@
 
 - name: Run App Instance Creation CloudFormation Stack
   cloudformation:
-    stack_name: "DatabaseInstance"
+    stack_name: "AppInstance"
     region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
     aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
@@ -60,7 +60,7 @@
 
 - name: Run Web Instance Creation CloudFormation Stack
   cloudformation:
-    stack_name: "DatabaseInstance"
+    stack_name: "WebInstance"
     region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
     aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
@@ -74,4 +74,18 @@
       AMI : "{{ bootstrap.NATAMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
   register: WebInstanceStack
+  when: stack_action == "create" or stack_action == "create-web-instance"
+
+- name: Run Web Instance Creation CloudFormation Stack
+  cloudformation:
+    stack_name: "WebInstanceEIPStack"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: present
+    template: "../cfn/bootstrap-eip.json"
+    template_parameters:
+      StackName : "{{ bootstrap.StackName }}"
+      WebInstance : "{{ WebInstanceStack.stack_outputs.WebInstance }}"
+  register: WebInstanceEIPStack
   when: stack_action == "create" or stack_action == "create-web-instance"
