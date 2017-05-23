@@ -5,10 +5,7 @@
   connection: local
   gather_facts: False
   vars_files:
-    - "./var/network/bootstrap.yaml"
-    - "./var/network/cloudformation.yaml"
-  pre_tasks:
-    - include_vars: "./var/{{ item }}.yaml"
-      with_items: include
+    - "./vars/network/bootstrap.yaml"
+    - "./vars/network/cloudformation.yaml"
   roles:
     - "{{ stack }}"

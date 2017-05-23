@@ -5,8 +5,8 @@
   connection: local
   gather_facts: False
   vars_files:
-    - "./var/web/bootstrap.yaml"
-    - "./var/web/cloudformation.yaml"
+    - "./vars/web/bootstrap.yaml"
+    - "./vars/web/cloudformation.yaml"
   pre_tasks:
     - include_vars: "./var/{{ item }}.yaml"
       with_items: include

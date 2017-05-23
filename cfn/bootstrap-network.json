@@ -220,8 +220,7 @@
 				"VpcId" : { "Ref" : "VPCID" },
 				"GroupDescription" : "Security Group for App Net",
 				"SecurityGroupIngress" : [
-					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.250.0/24"},
-					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.33.104/32"},
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "SourceSecurityGroupId" : { "Ref" : "WebNetSecurityGroup" }},
 					{"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"},
 					{"IpProtocol" : "tcp", "FromPort" : "800", "ToPort" : "805", "SourceSecurityGroupId" : { "Ref" : "WebNetSecurityGroup" }}
 				],
@@ -250,10 +249,9 @@
 				"VpcId" : { "Ref" : "VPCID" },
 				"GroupDescription" : "Security Group for Data Net",
 				"SecurityGroupIngress" : [	
-					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.250.0/24"},
-					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "10.1.33.104/32"},
-					{"IpProtocol" : "tcp", "FromPort" : "5432", "ToPort" : "5432", "SourceSecurityGroupId" : { "Ref" : "AppNetSecurityGroup" }},
-					{"IpProtocol" : "tcp", "FromPort" : "6432", "ToPort" : "6432", "SourceSecurityGroupId" : { "Ref" : "AppNetSecurityGroup" }}
+					{"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"},
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "SourceSecurityGroupId" : { "Ref" : "AppNetSecurityGroup" }},
+					{"IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "SourceSecurityGroupId" : { "Ref" : "WebNetSecurityGroup" }}
 				],
 				"Tags" : [ 
 					{"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "StackName"}, "-", "DataNet"]]} },

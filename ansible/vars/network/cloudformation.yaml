@@ -1,5 +1,6 @@
 ---
 bootstrap:
+        StackName: mediacorp
         VpcCidrBlock: 10.11.0.0/24
         Environment : production
         WebSubnetCIDR : 10.11.0.0/26

@@ -1,8 +1,8 @@
 ---
 
-- name: init
-  set_fact:
-    bootstrap_version: "{{ platforms['aws-platform-bootstrap']['version'] }}"
+- name: list all all_facts
+  debug: msg="Stack outputs are {{ bootstrap.StackName }}"
+  when: stack_action == "test"
 
 - name: Run Bootstrap Net CloudFormation Stack
   cloudformation:
@@ -35,7 +35,7 @@
       SecurityGroup : "{{ BootstrapNetStack.stack_outputs.DataNetSecurityGroup }}"
       Subnet : "{{ BootstrapNetStack.stack_outputs.DataSubnet }}"
       InstanceType : "{{ bootstrap.InstanceType }}"
-      AMI : "{{ bootstrap.NATAMI }}"
+      AMI : "{{ bootstrap.AMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
   register: DatabaseInstanceStack
   when: stack_action == "create" or stack_action == "create-db-instance"
@@ -53,7 +53,7 @@
       SecurityGroup : "{{ BootstrapNetStack.stack_outputs.AppNetSecurityGroup }}"
       Subnet : "{{ BootstrapNetStack.stack_outputs.AppSubnet }}"
       InstanceType : "{{ bootstrap.InstanceType }}"
-      AMI : "{{ bootstrap.NATAMI }}"
+      AMI : "{{ bootstrap.AMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
   register: AppInstanceStack
   when: stack_action == "create" or stack_action == "create-app-instance"
@@ -71,7 +71,7 @@
       SecurityGroup : "{{ BootstrapNetStack.stack_outputs.WebNetSecurityGroup }}"
       Subnet : "{{ BootstrapNetStack.stack_outputs.WebSubnet }}"
       InstanceType : "{{ bootstrap.InstanceType }}"
-      AMI : "{{ bootstrap.NATAMI }}"
+      AMI : "{{ bootstrap.AMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
   register: WebInstanceStack
   when: stack_action == "create" or stack_action == "create-web-instance"

@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  connection: local
+
+  tasks:
+
+  -  name: test cloudformation_facts
+     cloudformation_facts:
+        region: "{{ lookup('env', 'AWS_REGION') }}"
+        aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+        aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+        stack_name: "VPC"
+        all_facts: true
+        
+  - set_fact:
+      testing: "{{ cloudformation['VPC'] }}"
+
+  - name: list all all_facts
+    debug: msg="Stack outputs are {{ testing.stack_outputs }}"
