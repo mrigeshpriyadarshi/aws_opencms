@@ -1,0 +1,24 @@
+---
+- hosts: localhost
+  connection: local
+  vars_files:
+    - "./vars/common.yaml"
+
+  tasks:
+
+  -  name: web_cloudformation_facts
+     cloudformation_facts:
+        region: "{{ lookup('env', 'AWS_REGION') }}"
+        aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+        aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+        stack_name:  "{{ stacks.eip }}"
+        all_facts: true
+        
+  - set_fact:
+      app_url: "{{ cloudformation[stacks.eip].stack_outputs.AppURL }}"
+
+  - name: echo App URL
+    debug: 
+      msg: "App URL is {{ app_url }}"
+
+
