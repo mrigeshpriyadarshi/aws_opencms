@@ -1,0 +1,25 @@
+setup.webapp.path={{catalina_home}}/webapps/opencms
+setup.default.webapp=ROOT
+setup.install.components=workplace,releasenotes,template3,devdemo,bootstrap
+
+db.product=mysql
+db.provider=mysql
+db.create.user={{ db_user }}
+db.create.pwd={{db_pwd}}
+db.worker.user={{db_user}}
+db.worker.pwd={{db_pwd}}
+db.connection.url=jdbc:mysql://{{db_server}}:{{db_port}}/
+db.name=db_opencms
+db.create.db=true
+db.create.tables=true
+db.dropDb=true
+db.default.tablespace=
+db.index.tablespace=
+db.jdbc.driver=org.gjt.mm.mysql.Driver
+db.template.db=
+db.temporary.tablespace=
+
+server.url=http://{{ ansible_fqdn }}
+server.name={{ ansible_fqdn }}
+server.ethernet.address=
+server.servlet.mapping=

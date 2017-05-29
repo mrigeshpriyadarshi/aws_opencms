@@ -1,9 +1,48 @@
 ---
 # Tasks for app
 
-#- name: example
-#  action: example
-#  notify:
-#    - restart service
-#  tags:
-#    - example
+
+  - name: install {{item}}
+    yum: name={{item}} state=present
+    with_items: 
+      - unzip
+      - wget
+      - nc
+
+  # - include_role:
+  #     name: java
+
+  # - include_role:
+  #     name: tomcat
+
+  - name: get opencms
+    get_url:
+      url: "http://www.opencms.org/downloads/opencms/opencms-{{ opencms_version }}.zip"
+      dest: "/tmp/opencms-{{ opencms_version }}.zip"
+      checksum: sha256:{{opencms_checksum}}
+    tags:
+      - tomcat
+
+  - name: Extract opencms zip file
+    unarchive:
+      src: "/tmp/opencms-{{ opencms_version }}.zip"
+      dest: "{{catalina_home}}/webapps"
+      copy: no
+    tags:
+      - tomcat
+
+  - name: Configure Tomcat server
+    template: 
+      src=opencms.ini.j2
+      dest={{catalina_home}}/webapps/opencms/WEB-INF/opencms.ini
+    tags:
+      - tomcat
+
+  - name: Execute Auto Setup Script
+    shell: |
+       sudo java -classpath "{{catalina_home}}/webapps/opencms/WEB-INF/lib/*:{{catalina_home}}/webapps/opencms/WEB-INF/classes:/opt/tomcat/lib/*" \
+       org.opencms.setup.CmsAutoSetup -path {{catalina_home}}/webapps/opencms/WEB-INF/opencms.ini
+
+  - name: Status
+    debug: 
+      msg: "Completed!"
