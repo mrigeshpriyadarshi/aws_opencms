@@ -1,5 +1,5 @@
 ---
-# Handlers for web
-
-#- name: example restart
-#  action: service name=service state=restarted
+- name: restart apache
+  service:
+    name: "{{ apache_service }}"
+    state: "{{ apache_restart_state }}"
