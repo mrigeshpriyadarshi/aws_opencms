@@ -121,6 +121,9 @@ ansible-playbook  app.yaml
 # To create Install and configure Web Server 
 ansible-playbook  web.yaml
 
+# After all execution, generate the App URL which needs to accessed
+ansible-playbook -i bootstrap.ini get_app_url.yaml 
+
 ```
 
 These command will create whole stack and then install the OpenCMS. After Completion you can hit the Webserver IP in browser.
