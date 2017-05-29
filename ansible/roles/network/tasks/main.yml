@@ -1,12 +1,8 @@
 ---
 
-- name: list all all_facts
-  debug: msg="Stack outputs are {{ bootstrap.StackName }}"
-  when: stack_action == "test"
-
 - name: Run Bootstrap Net CloudFormation Stack
   cloudformation:
-    stack_name: "BootstrapNet"
+    stack_name: "{{ stacks.network }}"
     region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
     aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
@@ -20,11 +16,11 @@
       VPCCIDR : "{{ bootstrap.VpcCidrBlock }}"
       StackAvailabilityZone : "{{ bootstrap.StackAvailabilityZone }}"
   register: BootstrapNetStack
-  when: stack_action == "create" or stack_action == "create-network"
+  when: stack_action == "create" or stack_action == "create-web"or stack_action == "create-app" or stack_action == "create-db" or stack_action == "create-network"
 
 - name: Run DB Instance Creation CloudFormation Stack
   cloudformation:
-    stack_name: "DatabaseInstance"
+    stack_name: "{{ stacks.db }}"
     region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
     aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
@@ -32,17 +28,18 @@
     template: "../cfn/bootstrap-instance.json"
     template_parameters:
       StackName : "{{ bootstrap.StackName }}"
+      AppName : "db"
       SecurityGroup : "{{ BootstrapNetStack.stack_outputs.DataNetSecurityGroup }}"
       Subnet : "{{ BootstrapNetStack.stack_outputs.DataSubnet }}"
       InstanceType : "{{ bootstrap.InstanceType }}"
       AMI : "{{ bootstrap.AMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
-  register: DatabaseInstanceStack
-  when: stack_action == "create" or stack_action == "create-db-instance"
+  register: DbInstanceStack
+  when: stack_action == "create" or stack_action == "create-db"
 
 - name: Run App Instance Creation CloudFormation Stack
   cloudformation:
-    stack_name: "AppInstance"
+    stack_name: "{{ stacks.app }}"
     region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
     aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
@@ -50,17 +47,18 @@
     template: "../cfn/bootstrap-instance.json"
     template_parameters:
       StackName : "{{ bootstrap.StackName }}"
+      AppName : "app"
       SecurityGroup : "{{ BootstrapNetStack.stack_outputs.AppNetSecurityGroup }}"
       Subnet : "{{ BootstrapNetStack.stack_outputs.AppSubnet }}"
       InstanceType : "{{ bootstrap.InstanceType }}"
       AMI : "{{ bootstrap.AMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
   register: AppInstanceStack
-  when: stack_action == "create" or stack_action == "create-app-instance"
+  when: stack_action == "create" or stack_action == "create-app"
 
 - name: Run Web Instance Creation CloudFormation Stack
   cloudformation:
-    stack_name: "WebInstance"
+    stack_name: "{{ stacks.web }}"
     region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
     aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
@@ -68,15 +66,16 @@
     template: "../cfn/bootstrap-instance.json"
     template_parameters:
       StackName : "{{ bootstrap.StackName }}"
+      AppName : "web"
       SecurityGroup : "{{ BootstrapNetStack.stack_outputs.WebNetSecurityGroup }}"
       Subnet : "{{ BootstrapNetStack.stack_outputs.WebSubnet }}"
       InstanceType : "{{ bootstrap.InstanceType }}"
       AMI : "{{ bootstrap.AMI }}"
       KeyPairName : "{{ bootstrap.KeyPairName }}"
   register: WebInstanceStack
-  when: stack_action == "create" or stack_action == "create-web-instance"
+  when: stack_action == "create" or stack_action == "create-web"
 
-- name: Run Web Instance Creation CloudFormation Stack
+- name: Run EIP Creation CloudFormation Stack
   cloudformation:
     stack_name: "WebInstanceEIPStack"
     region: "{{ lookup('env', 'AWS_REGION') }}"
@@ -86,7 +85,56 @@
     template: "../cfn/bootstrap-eip.json"
     template_parameters:
       StackName : "{{ bootstrap.StackName }}"
-      WebInstance : "{{ WebInstanceStack.stack_outputs.WebInstance }}"
+      WebInstance : "{{ WebInstanceStack.stack_outputs.InstanceId }}"
   register: WebInstanceEIPStack
-  when: stack_action == "create" or stack_action == "create-web-instance"
+  when: stack_action == "create123" or stack_action == "create-eip"
 
+- name: Remove EIP Stack
+  cloudformation:
+    stack_name: "WebInstanceEIPStack"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: absent
+    template: "../cfn/bootstrap-eip.json"
+  when: stack_action == "delete" or stack_action == "delete-eip"
+
+- name: Remove Web Instance Stack
+  cloudformation:
+    stack_name: "{{ stacks.web }}"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: absent
+    template: "../cfn/bootstrap-instance.json"
+  when: stack_action == "delete" or stack_action == "delete-web"
+ 
+- name: Remove App Instance Stack
+  cloudformation:
+    stack_name: "{{ stacks.app }}"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: absent
+    template: "../cfn/bootstrap-instance.json"
+  when: stack_action == "delete" or stack_action == "delete-app"
+
+- name: Remove Data Instance Stack
+  cloudformation:
+    stack_name: "{{ stacks.db }}"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: absent
+    template: "../cfn/bootstrap-instance.json"
+  when: stack_action == "delete" or stack_action == "delete-db"
+
+- name: Remove Bootstrap Net CloudFormation Stack
+  cloudformation:
+    stack_name: "{{ stacks.network }}"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+    state: absent
+    template: "../cfn/bootstrap-network.json"
+  when: stack_action == "delete"
