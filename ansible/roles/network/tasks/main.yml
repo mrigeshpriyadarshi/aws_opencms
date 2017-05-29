@@ -16,7 +16,7 @@
       VPCCIDR : "{{ bootstrap.VpcCidrBlock }}"
       StackAvailabilityZone : "{{ bootstrap.StackAvailabilityZone }}"
   register: BootstrapNetStack
-  when: stack_action == "create" or stack_action == "create-web"or stack_action == "create-app" or stack_action == "create-db" or stack_action == "create-network"
+  when: stack_action == "create" or stack_action == "create-web"or stack_action == "create-app" or stack_action == "create-db" or stack_action == "create-eip" or stack_action == "create-network"
 
 - name: Run DB Instance Creation CloudFormation Stack
   cloudformation:
@@ -87,7 +87,7 @@
       StackName : "{{ bootstrap.StackName }}"
       WebInstance : "{{ WebInstanceStack.stack_outputs.InstanceId }}"
   register: WebInstanceEIPStack
-  when: stack_action == "create123" or stack_action == "create-eip"
+  when: stack_action == "create" or stack_action == "create-eip"
 
 - name: Remove EIP Stack
   cloudformation:
