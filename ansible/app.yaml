@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  connection: local
+  vars_files:
+    - "./vars/common.yaml"
+
+  tasks:
+
+  -  name: db_cloudformation_facts
+     cloudformation_facts:
+        region: "{{ lookup('env', 'AWS_REGION') }}"
+        aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
+        aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
+        stack_name:  "{{ stacks.db }}"
+        all_facts: true
+        
+  - set_fact:
+      db_server: "{{ cloudformation[stacks.db].stack_outputs.Hostname }}"
+
+- hosts: "{{ 'tag_Name_' + bootstrap.StackName + '_app_Instance' }}"
+  user: centos
+  sudo: yes
+  gather_facts: true
+  vars_files:
+    - "./vars/network/cloudformation.yaml"
+    - "./vars/db/cloudformation.yaml"
+  roles:
+    - { role: app, db_server: "{{hostvars['localhost']['db_server']}}", db_user: "{{ db.mysql_root_username}}", db_pwd: "{{db.mysql_root_password}}", db_port: "{{db.mysql_port}}"  }
+
