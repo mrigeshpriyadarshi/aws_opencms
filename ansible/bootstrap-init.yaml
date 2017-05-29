@@ -9,4 +9,4 @@
 
   tasks:
     - name: Install Extras Module
-      action: git repo=https://github.com/ansible/ansible-modules-extras.git dest="library/ansible-modules-extras" depth=2
+      action: git repo=https://github.com/ansible/ansible-modules-extras.git dest="library/ansible-modules-extras"

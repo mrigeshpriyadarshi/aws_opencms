@@ -1,6 +1,0 @@
----
-# master playbook
-
-- include: web.yml
-- include: app.yml
-- include: db.yml

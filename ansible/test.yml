@@ -1,6 +1,10 @@
 ---
 - hosts: localhost
   connection: local
+  vars_files:
+    - "./vars/common.yaml"
+    - "./vars/{{ stack }}/bootstrap.yaml"
+    - "./vars/{{ stack }}/cloudformation.yaml"
 
   tasks:
 
@@ -9,11 +13,39 @@
         region: "{{ lookup('env', 'AWS_REGION') }}"
         aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY') }}"
         aws_secret_key: "{{ lookup('env', 'AWS_SECRET_KEY') }}"
-        stack_name: "VPC"
+        stack_name: "{{ item }}"
         all_facts: true
+     with_items: 
+       - "{{ web }}"
         
   - set_fact:
-      testing: "{{ cloudformation['VPC'] }}"
+      "{{item}}": "{{ cloudformation[item].stack_outputs.WebSubnet }}"
+    with_items: 
+      - "{{ web }}"
+    register: results_list
 
-  - name: list all all_facts
-    debug: msg="Stack outputs are {{ testing.stack_outputs }}"
+  # - name: list all all_facts
+  #   debug: msg="Stack outputs are {{ testing.stack_outputs }}"
+
+  # - name: Match first block of results in path name
+  #   debug: 
+  #     msg: "{{cloudformation[item].stack_outputs.WebSubnet }}"
+  #   with_items: "{{web}}"
+
+  - name: Match first block of results in path name
+    debug: 
+      msg: "{{ results_list.results | map(attribute='ansible_facts.testing') | list }}"
+
+  # - name: Match first block of results in path name
+  #   debug: 
+  #     var: item.ansible_facts.testing
+  #   with_items: "{{results_list.results}}"
+
+  - name: Match first block of results in path name
+    debug: 
+      msg: "{{ results_list.results }}"
+
+  - name: Populate genders
+    set_fact:
+      genders: "{{ genders|default({}) | combine( {item.item: item.ansible_facts.item} ) }}"
+    with_items: results_list.results
