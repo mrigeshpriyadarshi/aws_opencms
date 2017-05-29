@@ -4,8 +4,6 @@
   hosts: localhost
   connection: local
   gather_facts: False
-  vars_files:
-    - "./var/{{ item }}/bootstrap.yaml"
 
   tasks:
     - name: Install Extras Module
