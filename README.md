@@ -22,8 +22,10 @@ If you are fluent with [Ansible](http://docs.ansible.com/ansible/intro_getting_s
 Clone the aws_opencms repo, and start up Ansible:
 
 ```bash
+
 git clone https://github.com/mrigeshpriyadarshi/aws_opencms.git
-cd aws_opencms
+cd aws_opencms/ansible
+
 ```
 
 Update [set_ansible_env.sh](set_ansible_env.sh) (Mac or Linux) with environment variables for Ansible parameters and AWS creds.
@@ -128,7 +130,7 @@ If something went wrong, jump to [Troubleshooting](https://github.com/mrigeshpri
 
 ## Customize your installation
 
-To evaluate this app , consider using the boxes we use for best results:
+To evaluate this app , please consider using the following boxes for best results:
 
 * ami-46c1b650 for CentOS 7.4
 
@@ -148,7 +150,7 @@ In the event you receive an error related to `client authentication error`, then
 Once the testing completes, you can delete the stack to save the extra cost on AWS.
 
 ```
-* ansible-playbook -i bootstrap.ini cloudformation.yaml --extra-vars='stack=network stack_action=delete'
+ansible-playbook -i bootstrap.ini cloudformation.yaml --extra-vars='stack=network stack_action=delete'
 
 ```
 
