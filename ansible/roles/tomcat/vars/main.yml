@@ -1,0 +1,22 @@
+---
+# vars file for tomcat
+
+# Install variables
+# Make sure your versions are compatible http://tomcat.apache.org/whichversion.html
+tomcat_version: '7.0.59' #7.0.59 latest 7.X release, 6.0.43 latest 6.x release
+tomcat_checksum: e0fe43d1fa17013bf7b3b2d3f71105d606a0582c153eb16fb210e7d5164941b0
+# Environment variables
+# java_home: /opt/{{ jdk_or_jre }}1.{{ java_version|replace('u','.0_') }} # Use when installing jdk
+# jre_home: /opt/{{ jdk_or_jre }}1.{{ java_version|replace('u','.0_') }}/jre # Use when installing jre only
+catalina_base: /opt/apache-tomcat-{{ tomcat_version }}
+catalina_home: /opt/apache-tomcat-{{ tomcat_version }}
+catalina_tempdir: /opt/apache-tomcat-{{ tomcat_version }}/temp
+
+# User management
+tomcat_user: tomcat
+tomcat_user_home: "{{ catalina_home }}"
+tomcat_uid: '500'
+manager_user: manager-gui
+manager_password: managersecret
+http_port: 8080
+https_port: 8443

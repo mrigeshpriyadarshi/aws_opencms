@@ -1,0 +1,65 @@
+---
+
+- name: Create tomcat group
+  group: name=tomcat state=present
+  tags:
+    - tomcat
+
+- name: get tomcat tarball (as tar.gz file)
+  get_url:
+    url:     "http://archive.apache.org/dist/tomcat/tomcat-{{ tomcat_version|first() }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+    dest:    "/tmp/apache-tomcat-{{ tomcat_version }}.tar.gz"
+    checksum: sha256:{{tomcat_checksum}}
+  tags:
+    - tomcat
+
+- name: Extract tomcat tarball file
+  unarchive:
+    src: "/tmp/apache-tomcat-{{ tomcat_version }}.tar.gz"
+    dest: "/opt"
+    copy: no
+  tags:
+    - tomcat
+
+- name: Create tomcat symlink
+  file: path=/opt/tomcat state=link src=/opt/apache-tomcat-{{ tomcat_version }}
+  tags:
+    - tomcat
+
+- name: Create tomcat user
+  user: name=tomcat home={{ tomcat_user_home }} uid={{ tomcat_uid }} shell=/bin/sh group=tomcat state=present
+  ignore_errors: True
+  tags:
+    - tomcat
+
+- name: Create tomcat init script
+  template: src=tomcat.sh dest=/etc/init.d/tomcat owner=root group=root mode=0766
+  when: ansible_os_family == 'RedHat'
+  tags:
+    - tomcat
+
+- name: Set tomcat file permissions
+  file: path=/opt/apache-tomcat-{{ tomcat_version }} owner={{ tomcat_user }}
+    group=tomcat recurse=yes
+  tags:
+    - tomcat
+
+- name: Configure Tomcat server
+  template: src=server.xml.{{ tomcat_version|first() }} dest={{ catalina_home }}/conf/server.xml backup=yes
+  tags:
+    - tomcat
+
+- name: Configure Tomcat users
+  template: src=tomcat-users.xml dest={{ catalina_home }}/conf/
+  tags:
+    - tomcat
+
+- name: Start tomcat service
+  shell: /etc/init.d/tomcat start
+  tags:
+    - tomcat
+    
+- name: wait for tomcat to start
+  wait_for: port={{ http_port }} timeout=60
+  tags:
+    - tomcat
