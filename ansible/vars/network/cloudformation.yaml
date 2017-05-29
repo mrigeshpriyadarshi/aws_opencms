@@ -8,5 +8,5 @@ bootstrap:
         DataSubnetCIDR : 10.11.0.128/25
         StackAvailabilityZone : us-east-1a
         InstanceType : t2.micro
-        AMI : ami-43ee9e79
+        AMI : ami-46c1b650
         KeyPairName : build

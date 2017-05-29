@@ -1,0 +1,6 @@
+---
+stacks:
+        network: BootstrapNetStack
+        web: WebInstanceStack
+        app : AppInstanceStack
+        db : DbInstanceStack
