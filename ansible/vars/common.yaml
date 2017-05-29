@@ -4,3 +4,4 @@ stacks:
         web: WebInstanceStack
         app : AppInstanceStack
         db : DbInstanceStack
+        eip : WebInstanceEIPStack
