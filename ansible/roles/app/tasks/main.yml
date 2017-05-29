@@ -9,12 +9,6 @@
       - wget
       - nc
 
-  # - include_role:
-  #     name: java
-
-  # - include_role:
-  #     name: tomcat
-
   - name: get opencms
     get_url:
       url: "http://www.opencms.org/downloads/opencms/opencms-{{ opencms_version }}.zip"
@@ -26,22 +20,34 @@
   - name: Extract opencms zip file
     unarchive:
       src: "/tmp/opencms-{{ opencms_version }}.zip"
-      dest: "{{catalina_home}}/webapps"
+      dest: "/tmp"
       copy: no
     tags:
       - tomcat
 
+  - name: copy opencms.war to ROOT.war on remote
+    copy:
+      src: "/tmp/opencms.war"
+      dest: "{{catalina_home}}/webapps/ROOT.war"
+      remote_src: yes
+
+  - file:
+      path: "/tmp/opencms.war"
+      state: absent
+
   - name: Configure Tomcat server
     template: 
       src=opencms.ini.j2
-      dest={{catalina_home}}/webapps/opencms/WEB-INF/opencms.ini
+      dest={{catalina_home}}/webapps/ROOT/WEB-INF/opencms.ini
     tags:
       - tomcat
 
   - name: Execute Auto Setup Script
     shell: |
-       sudo java -classpath "{{catalina_home}}/webapps/opencms/WEB-INF/lib/*:{{catalina_home}}/webapps/opencms/WEB-INF/classes:/opt/tomcat/lib/*" \
-       org.opencms.setup.CmsAutoSetup -path {{catalina_home}}/webapps/opencms/WEB-INF/opencms.ini
+       java -classpath "{{catalina_home}}/webapps/ROOT/WEB-INF/lib/*:{{catalina_home}}/webapps/ROOT/WEB-INF/classes:{{catalina_home}}/lib/*" \
+       org.opencms.setup.CmsAutoSetup -path {{catalina_home}}/webapps/ROOT/WEB-INF/opencms.ini
+    args:
+      chdir: "{{catalina_home}}/webapps/ROOT/WEB-INF/"
 
   - name: Status
     debug: 
