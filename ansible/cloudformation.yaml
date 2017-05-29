@@ -1,0 +1,12 @@
+---
+
+- name: Provision Stack 
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - "./vars/common.yaml"
+    - "./vars/{{ stack }}/bootstrap.yaml"
+    - "./vars/{{ stack }}/cloudformation.yaml"
+  roles:
+    - "{{ stack }}"
