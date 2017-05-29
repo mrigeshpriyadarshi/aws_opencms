@@ -1,7 +1,7 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
 	
-	"Description" : "Create subnets, IGW, Route Tables and Security Groups",
+	"Description" : "Create EIP and attaches to Instance",
 	
 	"Parameters" : {
 
@@ -18,8 +18,8 @@
 			"Description" : "Instance Id",
 			"Type": "String",
 			"MinLength": "9",
-			"MaxLength": "18"
-		},
+			"MaxLength": "20"
+		}
 
 	},
 
