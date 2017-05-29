@@ -1,0 +1,12 @@
+---
+
+- hosts: "{{ 'tag_Name_' + bootstrap.StackName + '_db_Instance' }}"
+  user: centos
+  sudo: yes
+  gather_facts: true
+  vars_files:
+    - "./vars/network/cloudformation.yaml"
+    - "./vars/db/cloudformation.yaml"
+  roles:
+    - { role: db}
+
