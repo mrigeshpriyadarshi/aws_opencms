@@ -1,5 +1,3 @@
 ---
-# Handlers for db
-
-#- name: example restart
-#  action: service name=service state=restarted
+- name: restart mysql
+  service: "name={{ mysql_daemon }} state=restarted sleep=5"

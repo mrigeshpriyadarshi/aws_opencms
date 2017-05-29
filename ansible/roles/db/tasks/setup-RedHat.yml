@@ -1,0 +1,16 @@
+---
+
+- name: Add MySQL Repo for Redhat 7.
+  yum:
+    # name: https://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
+    name: http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+    state: present
+  when: ansible_distribution_major_version == "7"
+
+- name: Ensure MySQL packages are installed.
+  yum: "name={{ item }} state=installed enablerepo={{ mysql_enablerepo }}"
+  with_items: "{{ mysql_packages }}"
+  register: rh_mysql_install_packages
+
+- name: Ensure MySQL Python libraries are installed.
+  yum: "name=MySQL-python state=installed enablerepo={{ mysql_enablerepo }}"
