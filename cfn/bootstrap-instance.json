@@ -54,6 +54,12 @@
 				"KeyName": { "Ref": "KeyPairName" },
 				"SecurityGroupIds": [{ "Ref": "SecurityGroup" }],
 				"SubnetId": { "Ref": "Subnet" },
+				"BlockDeviceMappings" : [{
+					"DeviceName" : "/dev/sda1",
+					"Ebs" : {
+						"DeleteOnTermination" : "true"
+					}
+				}],
 				"Tags": [
 					{ "Key": "Name", "Value": {"Fn::Join" : [ "", [ { "Ref" : "StackName"}, "_", { "Ref" : "AppName"}, "_", "Instance"]]}}
 				],
