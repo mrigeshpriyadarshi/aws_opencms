@@ -55,7 +55,7 @@ We have divided the whole implentation in four roles:-
 * web - It would install and configure Apache on Web instance
 
 
-Update [Ansible Vars](./vars/{{stack}}) YAML with relevant data.
+Update [Ansible Vars](./vars/network/cloudformation.yaml) YAML with relevant data.
 
 ```
 ---
