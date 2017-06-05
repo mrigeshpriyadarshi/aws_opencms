@@ -21,8 +21,8 @@ apache_global_vhost_settings: |
 apache_vhosts:
   # Additional properties:
   # 'serveradmin, serveralias, allow_override, options, extra_parameters'.
-  - servername: "local.dev"
-    documentroot: "/var/www/html"
+  - servername: "devops.mediacorp.dev"
+    # documentroot: "/var/www/html"
 
 apache_allow_override: "All"
 apache_options: "-Indexes +FollowSymLinks"
@@ -30,8 +30,8 @@ apache_options: "-Indexes +FollowSymLinks"
 apache_vhosts_ssl:
   # Additional properties:
   # 'serveradmin, serveralias, allow_override, options, extra_parameters'.
-  - { servername: "local.dev",
-    documentroot: "/var/www/html",
+  - { servername: "devops.mediacorp.dev",
+    # documentroot: "/var/www/html",
     certificate_file: "certificate.crt",
     certificate_key_file: "certificate.key",
     # Optional.
