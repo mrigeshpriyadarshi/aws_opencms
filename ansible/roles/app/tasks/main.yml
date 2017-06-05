@@ -1,8 +1,7 @@
 ---
 # Tasks for app
 
-
-  - name: install {{item}}
+  - name: "install packages"
     yum: name={{item}} state=present
     with_items: 
       - unzip
@@ -25,29 +24,60 @@
     tags:
       - tomcat
 
+  - find: path="{{catalina_home}}/webapps/" file_type=directory
+    register: webapps
+
+  - file: state=absent path="{{ item.path }}"
+    with_items: "{{webapps.files}}"
+
+
   - name: copy opencms.war to ROOT.war on remote
     copy:
       src: "/tmp/opencms.war"
       dest: "{{catalina_home}}/webapps/ROOT.war"
+      owner: "{{ tomcat_user }}"
+      group: "{{ tomcat_user }}"
       remote_src: yes
 
   - file:
       path: "/tmp/opencms.war"
       state: absent
 
-  - name: Configure Tomcat server
+  - name: Configure Tomcat server env file
     template: 
-      src=opencms.ini.j2
-      dest={{catalina_home}}/webapps/ROOT/WEB-INF/opencms.ini
+      src: setenv.sh.j2
+      dest: "{{catalina_home}}/bin/setenv.sh"
+      owner: "{{ tomcat_user }}"
+      group: "{{ tomcat_user }}"
     tags:
       - tomcat
 
+  - name: Configure Auto Setup Script config
+    template: 
+      src: opencms.ini.j2
+      dest: "{{catalina_home}}/webapps/opencms.ini"
+      owner: "{{ tomcat_user }}"
+      group: "{{ tomcat_user }}"
+    tags:
+      - tomcat
+
+  - pause:
+      minutes: 3
+
   - name: Execute Auto Setup Script
     shell: |
-       java -classpath "{{catalina_home}}/webapps/ROOT/WEB-INF/lib/*:{{catalina_home}}/webapps/ROOT/WEB-INF/classes:{{catalina_home}}/lib/*" \
-       org.opencms.setup.CmsAutoSetup -path {{catalina_home}}/webapps/ROOT/WEB-INF/opencms.ini
+       su {{ tomcat_user }} -c "java -classpath '{{catalina_home}}/webapps/ROOT/WEB-INF/lib/*:{{catalina_home}}/webapps/ROOT/WEB-INF/classes:{{catalina_home}}/lib/*' org.opencms.setup.CmsAutoSetup -path {{catalina_home}}/webapps/opencms.ini" &
     args:
       chdir: "{{catalina_home}}/webapps/ROOT/WEB-INF/"
+      creates: "{{catalina_home}}/webapps/ROOT/WEB-INF/logs/setup.log"
+
+  - pause:
+      minutes: 10
+
+  - wait_for:
+      path: "{{catalina_home}}/webapps/ROOT/WEB-INF/logs/setup.log"
+      search_regex: "Shutdown completed"
+      timeout: 60
 
   - name: Status
     debug: 
